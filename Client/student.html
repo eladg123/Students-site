@@ -1,0 +1,108 @@
+<html>
+
+<head>
+    <style>
+        div {
+            font-size: 40px;
+        }
+
+        ul {
+            height: 400px;
+            width: 800px;
+            font-size: 25px;
+        }
+
+        td {
+            height: 140px;
+            font-size: 40px;
+            width: 800px;
+        }
+    </style>
+</head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+    integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"
+    integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF"
+    crossorigin="anonymous"></script>
+
+<body onload="setData()">
+    <h1 style="font-size: 100px;">Student Page</h1> <br> <br>
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-info"> Name:<span id="name"></span> <br></li>
+        <li class="list-group-item list-group-item-info"> Faculty:<span id="faculty"> </span><br></li>
+        <li class="list-group-item list-group-item-info"> Email: <span id="email"></span><br></li>
+        <li class="list-group-item list-group-item-info"> Birth Date: <span id="birth"></span><br></li>
+        <li class="list-group-item list-group-item-info"> Grades: <table class="table" border="5" id="grades">
+                <tr>
+                    <td scope="col">Date</td>
+                    <td>Grade</td>
+                </tr>
+            </table><br></li>
+    </ul>
+
+
+    <script>
+        let nameEl = document.getElementById("name");
+        let facultyEl = document.getElementById("faculty");
+        let emailEl = document.getElementById("email");
+        let birthEl = document.getElementById("birth");
+        let gradesEl = document.getElementById("grades");
+        let id = sessionStorage.getItem("id");
+
+
+        async function setData() {
+            let resp = await fetch(`http://localhost:8000/api/students/${id}`);
+            if (resp.ok) {
+                let student = await resp.json();
+                nameEl.innerText = student.fullName;
+                facultyEl.innerText = student.faculty;
+                emailEl.innerText = student.Email;
+                let date = new Date(student.BirthDate);
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let dt = date.getDate();
+                if (dt < 10) {
+                    dt = '0' + dt;
+                }
+                if (month < 10) {
+                    month = '0' + month;
+                }
+                birthEl.innerText = year + '-' + month + '-' + dt;
+                if (student.Grades.length > 0) {
+                    for (let i = 0; i < student.Grades.length; i++) {
+                        let trEl = document.createElement("tr");
+                        gradesEl.appendChild(trEl);
+                        let td1El = document.createElement("td");
+                        let td2El = document.createElement("td");
+                        let gDate = new Date(student.Grades[i].date)
+                        let gYear = gDate.getFullYear();
+                        let gMonth = gDate.getMonth() + 1;
+                        let gDt = gDate.getDate();
+                        if (gDt < 10) {
+                            gDt = '0' + gDt;
+                        }
+                        if (gMonth < 10) {
+                            gMonth = '0' + gMonth;
+                        }
+                        td1El.innerText = gYear + '-' + gMonth + '-' + gDt;
+                        td2El.innerText = student.Grades[i].grade;
+                        trEl.appendChild(td1El);
+                        trEl.appendChild(td2El);
+                    }
+                }
+            }
+
+        }
+        function createStudent() {
+            location.href = "mainPage.html";
+        }
+    </script>
+</body>
+
+</html>

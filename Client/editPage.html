@@ -1,0 +1,93 @@
+<html>
+
+<head>
+
+    <style>
+        span {
+            font-size: 35px;
+            font-style: italic;
+        }
+
+        input {
+            height: 55px;
+            width: 240px;
+        }
+    </style>
+</head>
+
+<body onload="setData()">
+    <h1 style="font-size: 110px;">Update Student</h1> <br>
+    <span>Full Name:</span> <input type="text" id="name"> <br>
+    <span>Email:</span> <input type="text" id="mail"> <br>
+    <span> Faculty:</span> <input type="text" id="faculty"><br>
+    <span> BirthDate:</span> <input type="date" id="date"> <br> <br>
+    <input onclick="updateStudent()" type="button" id="update" value="Update" style="font-size: 25px;">
+
+    <script>
+        let id = sessionStorage.getItem("id");
+        async function setData() {
+            let resp = await fetch(`http://localhost:8000/api/students/${id}`);
+            if (resp.ok) {
+                let student = await resp.json();
+                document.getElementById("name").value = student.fullName;
+                document.getElementById("mail").value = student.Email;
+                document.getElementById("faculty").value = student.faculty;
+                let dateEl = document.getElementById("date");
+                let date = new Date(student.BirthDate);
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let dt = date.getDate();
+                if (dt < 10) {
+                    dt = '0' + dt;
+                }
+                if (month < 10) {
+                    month = '0' + month;
+                }
+                dateEl.value = year + '-' + month + '-' + dt;
+
+            }
+            else {
+                console.log("error");
+            }
+
+        }
+
+        async function getGrades() {
+            let resp = await fetch(`http://localhost:8000/api/grades/${id}`);
+            if (resp.ok) {
+                let grades = await resp.json();
+                return grades;
+            }
+        }
+
+
+        async function updateStudent() {
+            let fullName = document.getElementById("name").value;
+            let email = document.getElementById("mail").value;
+            let faculty = document.getElementById("faculty").value;
+            let BirthDate = document.getElementById("date").value;
+            let grades = getGrades();
+            let updateStudent = {
+                fullName: fullName, Email: email, faculty: faculty, BirthDate: BirthDate,
+                Grades: grades
+            };
+            let resp = await fetch(`http://localhost:8000/api/students/${id}`, {
+                method: 'put',
+                body: JSON.stringify(updateStudent),
+                headers: { "Content-type": "application/json" }
+            });
+            if (resp.ok) {
+                let data = await resp.json();
+
+            }
+            else {
+                console.log("error");
+            }
+            location.href = "mainPage.html";
+        }
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,158 @@
+<html>
+
+<head>
+    <style>
+        td {
+            font-size: 45px;
+            font: bold;
+        }
+    </style>
+</head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+    integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"
+    integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF"
+    crossorigin="anonymous"></script>
+</head>
+
+<body onload="setGrades()">
+    <h1 style="font-size: 100px;" ;>Grades:</h1><br> <br>
+    <input onclick="backPage()" class="btn btn-primary" type="button" id="back" value="Back"
+        style="height: 90px; width: 160px; font-size: 30px;">
+    <input onclick="addGrade()" class="btn btn-success" style="height: 90px; width: 160px; font-size: 30px;"
+        type="button" id="add" value="Add Grade"> <br> <br>
+    <table class="table-warning" id="table" border="8" style="height: 200px;width:1000px">
+        <tr>
+            <td>Date</td>
+            <td>Grade</td>
+            <td></td>
+        </tr>
+    </table>
+    <script>
+        let id = sessionStorage.getItem("id");
+        let tableEl = document.getElementById("table");
+        async function setGrades() {
+            let resp = await fetch(`http://localhost:8000/api/grades/${id}`);
+            if (resp.ok) {
+                let grades = await resp.json();
+                for (let i = 0; i < grades.length; i++) {
+                    let trEl = document.createElement("tr");
+                    tableEl.appendChild(trEl);
+                    /// create td1 (date)
+                    let td1El = document.createElement("td");
+                    let date = new Date(grades[i].date);
+                    let year = date.getFullYear();
+                    let month = date.getMonth() + 1;
+                    let dt = date.getDate();
+                    if (dt < 10) {
+                        dt = '0' + dt;
+                    }
+                    if (month < 10) {
+                        month = '0' + month;
+                    }
+                    let dateText = document.createElement("input");
+                    dateText.type = "text";
+                    dateText.value = year + '-' + month + '-' + dt;
+                    td1El.appendChild(dateText);
+                    trEl.appendChild(td1El);
+                    trEl.id = i;
+                    ///create td2 (grade)
+                    let td2El = document.createElement("td");
+                    trEl.appendChild(td2El);
+                    let gradeText = document.createElement("input");
+                    gradeText.type = "text";
+                    gradeText.value = grades[i].grade;
+                    td2El.appendChild(gradeText);
+                    ///create td3 (update)
+                    let td3El = document.createElement("td");
+                    let updateEl = document.createElement("button");
+                    updateEl.className = "btn btn-dark";
+                    updateEl.innerHTML = "Update";
+                    td3El.appendChild(updateEl);
+                    trEl.appendChild(td3El);
+                    updateEl.style.fontSize = "35px";
+                    updateEl.style.height = "70px";
+                    updateEl.style.width = "150px";
+                    updateEl.onclick = async () => {
+                        let resp = await fetch(`http://localhost:8000/api/grades/${id}`);
+                        if (resp.ok) {
+                            let grades = await resp.json();
+
+                        }
+                        let updatedGrades = grades;
+                        updatedGrades[i] = { date: dateText.value, grade: gradeText.value };
+                        resp = await fetch(`http://localhost:8000/api/grades/${id}`, {
+                            method: 'put',
+                            body: JSON.stringify(updatedGrades),
+                            headers: { "content-type": "application/json" }
+                        });
+                        if (resp.ok) {
+                            let data = await resp.json();
+                            alert("Grade Updated");
+                        }
+                        else {
+                            console.log("error");
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+
+
+        function addGrade() {
+            let trEl = document.createElement("tr");
+            tableEl.appendChild(trEl);
+            ///create td1 (date)
+            let td1El = document.createElement("td");
+            trEl.appendChild(td1El);
+            let dateInput = document.createElement("input");
+            dateInput.setAttribute("type", "date");
+            td1El.appendChild(dateInput);
+            /// create td2 (grade)
+            let td2El = document.createElement("td");
+            let gradeInput = document.createElement("input");
+            gradeInput.setAttribute("type", "number")
+            td2El.appendChild(gradeInput);
+            trEl.appendChild(td2El);
+            /// create td3 (confirm)
+            let td3El = document.createElement("td");
+            let confirmBtn = document.createElement("button");
+            confirmBtn.innerHTML = "Confirm";
+            trEl.appendChild(td3El);
+            td3El.appendChild(confirmBtn);
+            confirmBtn.style.fontSize = "35px";
+            confirmBtn.style.height = "70px";
+            confirmBtn.style.width = "150px";
+            confirmBtn.onclick = async () => {
+                let grade = { date: dateInput.value, grade: gradeInput.value };
+                let resp = await fetch(`http://localhost:8000/api/grades/${id}`, {
+                    method: 'post',
+                    body: JSON.stringify(grade),
+                    headers: { "content-type": "application/json" }
+                })
+                if (resp.ok) {
+                    let data = await resp.json();
+                    alert("Grade Added");
+                }
+                else { console.log("error") }
+
+            }
+
+
+        }
+        function backPage() {
+            location.href = "mainPage.html";
+        }
+    </script>
+</body>
+
+</html>
